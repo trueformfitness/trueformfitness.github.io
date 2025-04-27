@@ -1,0 +1,169 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trueform Fitness</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        section {
+            min-height: 100vh;
+            display: none;
+            scroll-margin-top: 80px;
+        }
+        section.active {
+            display: block;
+        }
+        .bg-hero {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        .bg-about {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        .bg-blog {
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1512621776951-a57141f2eefd?ixlib=rb-4.0.3&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+    <nav class="bg-gray-900 text-white fixed top-0 w-full z-10 shadow-lg">
+        <div class="container mx-auto px-4 py-4 flex justify-center">
+            <ul class="flex space-x-8">
+                <li><a href="#home" class="nav-link hover:text-blue-400 transition">Home</a></li>
+                <li><a href="#about" class="nav-link hover:text-blue-400 transition">About</a></li>
+                <li><a href="#blog" class="nav-link hover:text-blue-400 transition">Blog</a></li>
+                <li><a href="#consultation" class="nav-link hover:text-blue-400 transition">Consultation</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section id="home" class="bg-hero text-white flex items-center justify-center active">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Welcome to Trueform Fitness</h1>
+            <p class="text-lg md:text-xl mb-6">Transform your body and mind with personalized fitness coaching.</p>
+            <a href="#consultation" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition">Book a Consultation</a>
+        </div>
+    </section>
+
+    <section id="about" class="bg-about text-white flex items-center justify-center">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">About Trueform Fitness</h2>
+            <p class="text-lg mb-4">Our mission is to empower you to achieve your best self through fitness, nutrition, and mindset coaching.</p>
+            <p class="text-lg">Founded with a passion for health, we believe in sustainable, science-based approaches to wellness.</p>
+        </div>
+    </section>
+
+    <section id="blog" class="bg-blog text-white flex items-center justify-center">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Fitness & Health Blog</h2>
+            <p class="text-lg mb-4">Coming soon: Articles on workouts, nutrition tips, and mental resilience.</p>
+            <p class="text-lg">Stay tuned for expert advice to elevate your fitness journey.</p>
+        </div>
+    </section>
+
+    <section id="consultation" class="py-16">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Book a 1-on-1 Consultation</h2>
+            <p class="text-lg mb-6">Get personalized fitness coaching tailored to your goals.</p>
+            <form name="consultation" method="POST" data-netlify="true" class="max-w-lg mx-auto space-y-4">
+                <input type="hidden" name="form-name" value="consultation">
+                <input type="text" name="name" placeholder="Your Name" required class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="email" name="email" placeholder="Your Email" required class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <textarea name="message" placeholder="Your Goals" rows="5" required class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                <button type="submit" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition">Submit Inquiry</button>
+            </form>
+            <a href="#thankyou" class="bg-green-500 text-white px-6 py-3 rounded-lg mt-6 inline-block hover:bg-green-600 transition" id="payment-button">Pay for Consultation</a>
+        </div>
+    </section>
+
+    <section id="thankyou" class="py-16">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Thank You!</h2>
+            <p class="text-lg mb-6">Your payment was successful. We'll contact you soon to schedule your consultation.</p>
+            <a href="#home" class="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition">Back to Home</a>
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 text-white py-4">
+        <div class="container mx-auto px-4 text-center">
+            <p>© 2025 Trueform Fitness. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Navigation handling
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('section');
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href').substring(1);
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                    if (section.id === targetId) {
+                        section.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // Placeholder form submission alert
+        document.querySelector('form').addEventListener('submit', (e) => {
+            // Netlify handles submission; this is a fallback alert
+            alert('Form submitted! You will receive an email soon. For inquiries, contact: trueformfitnessofficial@gmail.com.');
+        });
+
+        // Placeholder payment button
+        document.getElementById('payment-button').addEventListener('click', (e) => {
+            e.preventDefault();
+            alert('Book a 1-on-1 consultation at trueformfitnessofficial@gmail.com');
+        });
+    </script>
+</body>
+</html>
